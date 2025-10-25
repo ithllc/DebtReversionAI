@@ -1,0 +1,9 @@
+dedalus-labs
+manus-sdk
+edgartools
+yfinance
+pandas-ta
+fastapi
+uvicorn
+pydantic
+python-dotenv

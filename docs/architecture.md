@@ -1,0 +1,52 @@
+# Architecture
+
+The DebtReversionAI application follows a multi-layer architecture designed for autonomous operation and clear separation of concerns.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   USER INTERFACE LAYER                       │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
+│  │ Voice Input  │  │  Text Chat   │  │ Voice Output │      │
+│  │  (Manus AI)  │  │   Interface  │  │ (Manus AI)   │      │
+│  └──────────────┘  └──────────────┘  └──────────────┘      │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│                 AI AGENT ORCHESTRATION LAYER                 │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │         LLM Agent (Gemini + Dedalus Runner)          │   │
+│  │  - Natural language understanding                    │   │
+│  │  - Tool orchestration & multi-model handoffs         │   │
+│  │  - Decision making                                   │   │
+│  └──────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│                    MCP SERVER LAYER (Dedalus)                │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
+│  │Financial Data│  │  EDGAR Data  │  │  AI Browser  │      │
+│  │  MCP Server  │  │  MCP Server  │  │ (Manus AI)   │      │
+│  └──────────────┘  └──────────────┘  └──────────────┘      │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│                       DATA SOURCE LAYER                      │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
+│  │Yahoo Finance │  │   SEC EDGAR  │  │Options Chain │      │
+│  │   (yfinance) │  │ (edgartools) │  │   Websites   │      │
+│  └──────────────┘  └──────────────┘  └──────────────┘      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Layers
+
+1.  **User Interface Layer:** Handles interaction with the user via text (`interface/chat.py`) and voice (`interface/voice.py`). Voice capabilities are provided by Manus AI.
+
+2.  **AI Agent Orchestration Layer:** This is the core of the application, located in `agents/`. The `StockAnalysisAgent` uses the `DedalusRunner` to orchestrate calls to different models (like Gemini) and tools.
+
+3.  **MCP Server Layer:** These are tool servers deployed on the Dedalus Labs platform. The code for these servers is in `mcp_servers/`. They expose functionalities from the data source layer as tools that the AI agent can call.
+    *   `financial_server.py`: Wraps `yfinance` and `pandas-ta` for stock data analysis.
+    *   `edgar_server.py`: Wraps `edgartools` for searching SEC filings.
+    *   **Manus AI Browser:** Acts as a third tool server for web scraping and autonomous browsing tasks, like verifying options availability.
+
+4.  **Data Source Layer:** These are the external libraries and services that provide the raw data, including `yfinance`, `edgartools`, and various financial websites.
