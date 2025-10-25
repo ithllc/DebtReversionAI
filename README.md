@@ -58,7 +58,7 @@ The application follows a multi-layer architecture designed for autonomous opera
 
 - **Python 3.10+**
 - **Orchestration:** [Dedalus Labs](https://www.dedaluslabs.ai/) for the MCP gateway and agent orchestration.
-- **AI Browser:** [Manus AI](https://manus.im/) for browser automation and multimodal capabilities.
+- **AI Browser:** [Manus AI](https://manus.im/) for browser automation, using the `openai` library as a client.
 - **LLM:** Google Gemini Pro (via Dedalus).
 - **Financial Data:** `yfinance` for stock prices and `pandas-ta` for technical indicators.
 - **SEC Filings:** `edgartools` for accessing the EDGAR database.
@@ -77,23 +77,30 @@ It is highly recommended to use a virtual environment to manage project dependen
 # Navigate to the project directory
 cd DebtReversionAI
 
-# Create a virtual environment named 'venv'
+# Create a virtual environment named 'aitinkerersdebtreversion'
 python3 -m venv aitinkerersdebtreversion
 
 # Activate the virtual environment
 # On macOS and Linux:
-source aitinkerersdebtreversionv/bin/activate
+source aitinkerersdebtreversion/bin/activate
 
-# Windows (PowerShell): .\aitinkerersdebtreversion\Scripts\Activate.ps1
-# Windows (cmd): aitinkerersdebtreversion\Scripts\activate.bat
+# On Windows (PowerShell):
+# .\aitinkerersdebtreversion\Scripts\Activate.ps1
 ```
 
 ### 2. Install Dependencies
 
-Install all the required Python packages using the `requirements.txt` file.
+This project has dependencies from PyPI and also uses a local version of the `pandas-ta` library.
 
 ```bash
+# 1. Install pandas-ta from the local source directory
+pip install -e ../pandas-ta/
+
+# 2. Install the runtime dependencies
 pip install -r requirements.txt
+
+# 3. (Optional) Install the development dependencies (for linting/formatting)
+pip install -r requirements-dev.txt
 ```
 
 ### 3. Configure API Keys

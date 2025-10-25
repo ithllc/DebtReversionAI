@@ -9,11 +9,19 @@ First, create a virtual environment and install the required dependencies.
 cd DebtReversionAI
 
 # Create a virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+python3 -m venv aitinkerersdebtreversion
 
-# Install dependencies
+# Activate the virtual environment
+source aitinkerersdebtreversion/bin/activate  # On Windows use `aitinkerersdebtreversion\Scripts\activate`
+
+# Install local pandas-ta dependency
+pip install -e ../pandas-ta/
+
+# Install runtime dependencies
 pip install -r requirements.txt
+
+# (Optional) Install development dependencies
+pip install -r requirements-dev.txt
 ```
 
 ## 2. API Keys

@@ -50,7 +50,6 @@ with patch.dict(
     "sys.modules",
     {"mcp": MagicMock(), "mcp.server": MagicMock(), "mcp.types": MagicMock()},
 ):
-
     # Replace with our mock implementations
     sys.modules["mcp.server"].Server = MockServer
     sys.modules["mcp.types"].Tool = MockTool

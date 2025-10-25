@@ -49,7 +49,6 @@ with patch.dict(
         "edgar": MagicMock(),
     },
 ):
-
     # Replace with our mock implementations
     sys.modules["mcp.server"].Server = MockServer
     sys.modules["mcp.types"].Tool = MockTool
