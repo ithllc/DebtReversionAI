@@ -40,6 +40,10 @@ class MockServer:
 
 
 # Since mcp.server and edgar are not real installable libraries in this context, we patch them.
+# We also need to add the project root to sys.path for the imports to work correctly
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, project_root)
+
 with patch.dict(
     "sys.modules",
     {
@@ -82,7 +86,7 @@ async def test_search_debt_conversions_found(edgar_server):
     mock_company = MagicMock()
     mock_company.get_filings.return_value = mock_filings
 
-    with patch("edgar.Company", return_value=mock_company) as mock_edgar_company:
+    with patch("mcp_servers.edgar_server.Company", return_value=mock_company) as mock_edgar_company:
         result = await edgar_server._search_debt_conversions("TEST", 3)
 
         mock_edgar_company.assert_called_with("TEST")
@@ -142,7 +146,7 @@ async def test_get_8k_filings(edgar_server):
     # Slicing is used in the method, so the mock needs to support it
     type(mock_company.get_filings.return_value).__getitem__ = lambda _, s: [mock_filing]
 
-    with patch("edgar.Company", return_value=mock_company) as mock_edgar_company:
+    with patch("mcp_servers.edgar_server.Company", return_value=mock_company) as mock_edgar_company:
         result = await edgar_server._get_8k_filings("XYZ", limit=1)
 
         mock_edgar_company.assert_called_with("XYZ")

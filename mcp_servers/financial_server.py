@@ -86,6 +86,13 @@ class FinancialDataServer:
         stock = yf.Ticker(ticker)
         hist = stock.history(period=period)
 
+        if hist.empty:
+            return [
+                TextContent(
+                    type="text", text=f"Could not retrieve stock data for {ticker}."
+                )
+            ]
+
         current_price = hist["Close"].iloc[-1]
         week52_high = hist["High"].max()
         week52_low = hist["Low"].min()
@@ -115,6 +122,13 @@ class FinancialDataServer:
         # Calculate MACD
         macd = ta.macd(hist["Close"])
 
+        if macd is None or macd.empty:
+            return [
+                TextContent(
+                    type="text", text=f"Could not calculate MACD for {ticker}."
+                )
+            ]
+
         current_price = hist["Close"].iloc[-1]
         macd_line = macd["MACD_12_26_9"].iloc[-1]
         signal_line = macd["MACDs_12_26_9"].iloc[-1]
@@ -139,6 +153,13 @@ class FinancialDataServer:
         """Check if stock is near 52-week low"""
         stock = yf.Ticker(ticker)
         hist = stock.history(period="1y")
+
+        if hist.empty:
+            return [
+                TextContent(
+                    type="text", text=f"Could not retrieve stock data for {ticker}."
+                )
+            ]
 
         current_price = hist["Close"].iloc[-1]
         week52_low = hist["Low"].min()

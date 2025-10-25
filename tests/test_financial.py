@@ -61,6 +61,7 @@ with patch.dict(
 @pytest.fixture
 def financial_server():
     """Provides an instance of the FinancialDataServer for testing."""
+    # No special setup needed if yfinance.Ticker is properly mocked in each test
     server = FinancialDataServer()
     return server
 
@@ -134,6 +135,8 @@ async def test_check_52week_low_is_near(financial_server):
             datetime(2023, 4, 1),
         ],
     )
+    # Ensure the history is not empty
+    assert not mock_history.empty
     mock_ticker.history.return_value = mock_history
 
     with patch("yfinance.Ticker", return_value=mock_ticker):
@@ -160,6 +163,8 @@ async def test_check_52week_low_is_not_near(financial_server):
             datetime(2023, 4, 1),
         ],
     )
+    # Ensure the history is not empty
+    assert not mock_history.empty
     mock_ticker.history.return_value = mock_history
 
     with patch("yfinance.Ticker", return_value=mock_ticker):
