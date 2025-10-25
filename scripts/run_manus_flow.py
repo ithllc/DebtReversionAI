@@ -1,8 +1,22 @@
 import asyncio
 import re
 import os
-from agents.dedalus_orchestrator import StockAnalysisAgent
-from agents.manus_browser import ManusBrowser
+try:
+    # Prefer relative imports when executed as a package/module
+    from ..agents.dedalus_orchestrator import StockAnalysisAgent
+    from ..agents.manus_browser import ManusBrowser
+except Exception:
+    # Fallback: make the project root importable and use absolute imports so
+    # the script remains runnable when executed directly (python scripts/run_manus_flow.py)
+    import sys
+    from pathlib import Path
+
+    project_root = Path(__file__).resolve().parents[1]
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+
+    from agents.dedalus_orchestrator import StockAnalysisAgent
+    from agents.manus_browser import ManusBrowser
 
 
 async def main():
@@ -46,7 +60,7 @@ async def main():
         print(f"\nQuerying Manus for debt conversion info for {t}...")
         try:
             # Use Manus to search financial news for debt conversion price in the date range
-            topic = "debt conversion price Oct 13 2025 through Oct 17 2025"
+            topic = "debt conversion price for stocks at 52 week lows during Oct 13 2025 through Oct 17 2025"
             mresp = await browser.search_financial_news(t, topic)
             print("Manus response:")
             print(mresp)
