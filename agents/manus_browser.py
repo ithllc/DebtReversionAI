@@ -5,11 +5,40 @@ from openai import OpenAI
 
 class ManusBrowser:
     def __init__(self):
-        self.client = OpenAI(
-            base_url="https://api.manus.im",
-            api_key="placeholder",  # The real key is in the header
-            default_headers={"API_KEY": os.getenv("MANUS_API_KEY")},
-        )
+        # Resolve the Manus API key from several possible environment variable names.
+        # The hackathon contributors sometimes used a project-specific name like
+        # 'aitinkerers10252025' instead of the generic 'MANUS_API_KEY'. Try a few
+        # common variants so the wrapper works regardless of which one is present.
+        possible_vars = [
+            "MANUS_API_KEY",
+            "MANUS_API_KEY_VALUE",
+            "aitinkerers10252025",
+            "AITINKERERS10252025",
+            "MANUS_KEY",
+        ]
+        api_key = None
+        for vn in possible_vars:
+            v = os.getenv(vn)
+            if v:
+                api_key = v
+                # store which env var we used for diagnostics
+                self._manus_env_var = vn
+                break
+
+        if not api_key:
+            # No key found - don't attempt to call the service with a malformed/empty token.
+            # Keep the client None so callers can detect missing configuration.
+            import logging
+
+            logging.getLogger(__name__).warning(
+                "Manus API key not found in environment. Looked for: %s",
+                ",".join(possible_vars),
+            )
+            self.client = None
+            return
+
+        # Construct the OpenAI-compatible client pointed at Manus' v1 endpoint.
+        self.client = OpenAI(base_url="https://api.manus.im/v1", api_key=api_key)
 
     async def _run_task(
         self, prompt: str, task_mode: str = "agent", agent_profile: str = "quality"

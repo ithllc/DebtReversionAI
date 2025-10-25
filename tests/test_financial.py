@@ -58,6 +58,14 @@ with patch.dict(
     from mcp_servers.financial_server import FinancialDataServer
 
 
+@pytest.fixture(autouse=True)
+def mock_yfinance_cache():
+    """Mocks yfinance.cache to prevent network calls and caching errors."""
+    with patch("yfinance.cache") as mock_cache:
+        mock_cache.get_yh_cache_dir.return_value = "/tmp/yfinance_cache"
+        yield
+
+
 @pytest.fixture
 def financial_server():
     """Provides an instance of the FinancialDataServer for testing."""
