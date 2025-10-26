@@ -128,13 +128,13 @@ SEC_API_USER_AGENT=your.email@example.com
 
 ### 4. Deploy MCP Servers
 
-The tool servers located in the `mcp_servers/` directory (`financial_server.py` and `edgar_server.py`) are designed to be deployed on the Dedalus Labs platform.
+The MCP servers are defined in the `src/servers/` directory and launched by the main `src/main.py` entrypoint, as required by the Dedalus Labs deployment platform.
 
-These servers expose the financial and SEC data tools to the agent. **The application will not be fully functional until these servers are deployed**, as the agent relies on them to perform its core tasks.
+These servers expose the financial and SEC data tools to the agent. **The application will not be fully functional until these servers are deployed and running**, as the agent relies on them to perform its core tasks. See the [Setup Guide](docs/setup.md) for deployment instructions.
 
 ### 5. Run the Application
 
-Once the setup is complete, you can start the chat interface.
+Once the setup is complete and the MCP servers are running (either locally via Docker or deployed), you can start the chat interface.
 
 ```bash
 python main.py
@@ -152,9 +152,14 @@ You can now interact with the DebtReversionAI agent from your terminal.
 ```
 DebtReversionAI/
 ├── .env                  # Local environment variables (API keys)
-├── main.py               # Main application entry point
+├── main.py               # Main application entry point for the agent
 ├── requirements.txt      # Project dependencies
 ├── README.md             # This file
+├── src/                  # Source code for deployable MCP servers
+│   ├── main.py           # Main entry point for all MCP servers
+│   └── servers/
+│       ├── edgar_server.py
+│       └── financial_server.py
 ├── agents/               # Core agent logic and prompts
 │   ├── dedalus_orchestrator.py
 │   ├── manus_browser.py
@@ -162,9 +167,6 @@ DebtReversionAI/
 ├── interface/            # User interface (chat, voice)
 │   ├── chat.py
 │   └── voice.py
-├── mcp_servers/          # Tool servers to be deployed on Dedalus
-│   ├── financial_server.py
-│   └── edgar_server.py
 ├── utils/                # Helper functions and utilities (placeholders)
 ├── tests/                # Tests for the application (placeholders)
 └── docs/                 # Detailed documentation

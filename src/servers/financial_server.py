@@ -6,8 +6,8 @@ from datetime import datetime
 
 
 class FinancialDataServer:
-    def __init__(self):
-        self.server = Server("financial-data")
+    def __init__(self, port=8000):
+        self.server = Server("financial-data", port=port)
         self._register_tools()
 
     def _register_tools(self):

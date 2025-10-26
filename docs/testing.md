@@ -31,21 +31,19 @@ The MCP servers can be tested both locally and after deployment.
 
 ### Local Testing
 
-To test the MCP servers locally, you can run them directly and use a tool like `curl` or a simple Python script to send requests.
+To test the MCP servers locally, you can run them directly from the `src/main.py` entrypoint and use a tool like `curl` to send requests.
 
 1.  **Start the servers:**
 
     ```bash
-    # In one terminal
-    python mcp_servers/edgar_server.py
-
-    # In another terminal
-    python mcp_servers/financial_server.py
+    python src/main.py
     ```
+
+    This will start both servers, with the Edgar server on port 8000 and the Financial Data server on port 8001.
 
 2.  **Test with `curl`:**
 
-    You can call the `list_tools` endpoint to see the available tools.
+    You can call the `list_tools` endpoint on each server to see the available tools.
 
     **Edgar Server:**
     ```bash

@@ -48,11 +48,24 @@ SEC_API_USER_AGENT=your.email@example.com
 
 ## 3. Deploying MCP Servers
 
-The tool servers located in the `mcp_servers/` directory (`financial_server.py` and `edgar_server.py`) are designed to be deployed on the Dedalus Labs platform.
+The MCP servers are defined in the `src/servers/` directory and launched by the main `src/main.py` entrypoint, as required by the Dedalus Labs deployment platform.
 
-### Deployment using Docker
+### Deployment from GitHub
 
-The easiest way to deploy the MCP servers is to use Docker. A `Dockerfile` is provided in the root of the project.
+The Dedalus Labs platform is designed to deploy Python servers directly from a GitHub repository.
+
+1.  **Connect Your Repository:** In the Dedalus dashboard, connect your GitHub account and select the `DebtReversionAI` repository.
+2.  **Configure Build Settings:**
+    *   **Branch:** `main`
+    *   **Build Type:** The platform should automatically detect a Python project. It will look for the required `src/main.py` file.
+3.  **Configure Run Settings:**
+    *   **Start Command:** The platform will automatically run `python src/main.py`.
+    *   **Ports:** Expose ports `8000` and `8001` for the Edgar and Financial Data servers, respectively.
+    *   **Environment Variables:** Add your `SEC_API_USER_AGENT` to the environment variables section in the Dedalus UI.
+
+### Local Deployment using Docker
+
+The easiest way to run the MCP servers locally is to use the provided `Dockerfile`.
 
 1.  **Build the Docker image:**
 
@@ -63,41 +76,12 @@ The easiest way to deploy the MCP servers is to use Docker. A `Dockerfile` is pr
 2.  **Run the Docker container:**
 
     ```bash
-    docker run -d -p 8000:8000 --env-file .env debt-reversion-mcp
+    docker run -d -p 8000:8000 -p 8001:8001 --env-file .env debt-reversion-mcp
     ```
 
-This will start both the Edgar and Financial Data servers in a single container.
+This will start both the Edgar and Financial Data servers in a single container, accessible on `localhost:8000` and `localhost:8001`.
 
-### Deployment to Dedalus Labs
-
-The `dedalus-sdk-python` library provides a command-line interface for deploying services to Dedalus Labs. To deploy the MCP servers, you can use the `dedalus deploy` command.
-
-1.  **Login to Dedalus Labs:**
-
-    ```bash
-    dedalus login
-    ```
-
-2.  **Deploy the servers:**
-
-    You will need to create a deployment configuration file (e.g., `dedalus.yml`) to specify the servers to deploy.
-
-    **`dedalus.yml`:**
-    ```yaml
-    services:
-      - name: edgar-data
-        path: mcp_servers/edgar_server.py
-      - name: financial-data
-        path: mcp_servers/financial_server.py
-    ```
-
-    Then, run the deploy command:
-
-    ```bash
-    dedalus deploy -f dedalus.yml
-    ```
-
-**These servers must be deployed and running on Dedalus for the agent's tools to function correctly.**
+**These servers must be running (either locally or deployed) for the agent's tools to function correctly.**
 
 ## 3.5 Model configuration and selection
 

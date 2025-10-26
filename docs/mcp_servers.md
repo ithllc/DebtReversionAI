@@ -23,7 +23,7 @@ This architecture allows for a clean separation of concerns, where individual se
 
 ## Edgar Server
 
-The Edgar Server (`mcp_servers/edgar_server.py`) interacts with the SEC's EDGAR database to retrieve information from company filings.
+The Edgar Server (`src/servers/edgar_server.py`) interacts with the SEC's EDGAR database to retrieve information from company filings.
 
 **Server Name:** `edgar-data`
 
@@ -60,7 +60,7 @@ Extracts detailed debt conversion terms from a specific filing.
 
 ## Financial Data Server
 
-The Financial Data Server (`mcp_servers/financial_server.py`) provides stock market data and technical indicators.
+The Financial Data Server (`src/servers/financial_server.py`) provides stock market data and technical indicators.
 
 **Server Name:** `financial-data`
 

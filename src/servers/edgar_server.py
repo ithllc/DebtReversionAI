@@ -7,8 +7,8 @@ import re
 
 
 class EdgarServer:
-    def __init__(self):
-        self.server = Server("edgar-data")
+    def __init__(self, port=8001):
+        self.server = Server("edgar-data", port=port)
         # Set SEC identity (required)
         set_identity(os.getenv("SEC_API_USER_AGENT"))
         self._register_tools()
