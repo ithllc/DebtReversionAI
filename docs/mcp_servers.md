@@ -4,67 +4,77 @@ This document provides an overview of the Model-Context-Protocol (MCP) servers u
 
 ## Overview
 
-The MCP servers are built using the `mcp.server` library. They expose a set of tools that can be listed and called by an MCP client. Each server is responsible for a specific domain of data.
+The MCP servers are built using the `mcp.server` library. They expose a set of tools that can be listed and called by an MCP client.
 
-## Calling Deployed MCP Servers
+**Architecture**: As of the latest update, the project uses a **unified MCP server** architecture where a single server (`debt-reversion-ai`) combines tools from multiple domains (financial data and SEC filings) and routes calls to the appropriate implementation.
 
-When the `edgar-data` and `financial-data` servers are deployed to a platform like Dedalus Labs, they can be grouped under a single, unified endpoint. In this project, that endpoint is `ficonnectme2anymcp/DebtReversionAI`.
-
-This single address acts as a gateway to the combined toolset of all servers deployed under it.
+## Unified Server Architecture
 
 ### How it Works
 
-1.  **Tool Discovery:** The agent's orchestrator (`dedalus_orchestrator.py`) sends a `list_tools` request to the `ficonnectme2anymcp/DebtReversionAI` endpoint.
-2.  **Merged Toolset:** The Dedalus platform intercepts this request and gathers the tool definitions from both the `edgar-data` and `financial-data` servers. It returns a single, merged list of all available tools to the agent.
-3.  **Model Reasoning:** The AI model receives the user's prompt along with this complete "menu" of tools. It can then reason about which tool is best suited to the task, regardless of which server it originated from. For example, it knows to use `check_52week_low` for price analysis and `search_debt_conversions` for filing research.
-4.  **Platform Routing:** When the agent decides to call a specific tool (e.g., `get_stock_data`), the orchestrator sends the request back to the main `ficonnectme2anymcp/DebtReversionAI` endpoint. The platform is responsible for routing this call to the correct underlying microservice (the `financial-data` server in this case) that originally registered the tool.
+The DebtReversionAI MCP server uses a **tool routing pattern** to combine multiple specialized servers into a single unified endpoint:
 
-This architecture allows for a clean separation of concerns, where individual servers handle specific tasks, but the agent can access them all through a single, simplified interface.
+```
+ficonnectme2anymcp/DebtReversionAI (Deployed Server)
+    ↓
+UnifiedDebtReversionServer (Main Entry Point)
+    ↓
+Tool Router (routes based on tool name)
+    ├─→ FinancialDataServer (stock data, MACD, options)
+    └─→ EdgarServer (SEC filings, debt conversions)
+```
 
-## Edgar Server
+**Key Components:**
 
-The Edgar Server (`src/servers/edgar_server.py`) interacts with the SEC's EDGAR database to retrieve information from company filings.
+1.  **UnifiedDebtReversionServer** (`src/main.py`): 
+    - Single entry point that Dedalus platform recognizes
+    - Combines tool definitions from both financial and EDGAR domains
+    - Routes tool calls to appropriate sub-server implementation
 
-**Server Name:** `edgar-data`
+2.  **FinancialDataServer** (`src/servers/financial_server.py`):
+    - Provides stock market data and technical indicators
+    - Used as a sub-component (no independent server)
 
-### Tools
+3.  **EdgarServer** (`src/servers/edgar_server.py`):
+    - Provides SEC EDGAR filing data and analysis
+    - Used as a sub-component (no independent server)
 
-#### `search_debt_conversions`
+### Deployment
 
-Searches for debt conversion events in a company's 8-K filings.
+When deployed to Dedalus Labs, the unified server:
+- Runs on **port 8000**
+- Is accessible as: `ficonnectme2anymcp/DebtReversionAI`
+- Exposes **all tools** from both financial and EDGAR servers through a single endpoint
 
-*   **Description:** Search for debt conversion events in 8-K filings.
-*   **Input Schema:**
-    *   `ticker` (string, required): The stock ticker of the company.
-    *   `months_back` (integer, optional, default: 3): The number of months to look back for filings.
-*   **Output:** A text summary of potential debt conversion events found, including filing dates, accession numbers, and extracted conversion prices.
+### Agent Integration
 
-#### `get_8k_filings`
+The orchestrator (`agents/dedalus_orchestrator.py`) connects to the MCP server:
 
-Retrieves recent 8-K filings for a company.
+```python
+result = await self.runner.run(
+    input=user_message,
+    model="anthropic/claude-sonnet-4-20250514",
+    mcp_servers=["ficonnectme2anymcp/DebtReversionAI"],  # Single unified server
+    instructions=SYSTEM_PROMPT,
+    stream=False,
+)
+```
 
-*   **Description:** Get recent 8-K filings for a company.
-*   **Input Schema:**
-    *   `ticker` (string, required): The stock ticker of the company.
-    *   `limit` (integer, optional, default: 10): The maximum number of filings to return.
-*   **Output:** A text summary of recent 8-K filings, including filing dates and URLs.
+The LLM receives **all 6 tools** and can call any of them as needed for the analysis workflow.
 
-#### `extract_conversion_terms`
+---
 
-Extracts detailed debt conversion terms from a specific filing.
+## Available Tools
 
-*   **Description:** Extract debt conversion terms from filing.
-*   **Input Schema:**
-    *   `filing_url` (string, required): The URL of the filing.
-*   **Output:** A text summary of the extracted conversion terms. (Note: This is not fully implemented yet).
+The unified server exposes the following tools:
 
-## Financial Data Server
+---
 
-The Financial Data Server (`src/servers/financial_server.py`) provides stock market data and technical indicators.
+## Available Tools
 
-**Server Name:** `financial-data`
+The unified server exposes the following tools:
 
-### Tools
+### Financial Data Tools (from FinancialDataServer)
 
 #### `get_stock_data`
 
@@ -75,6 +85,7 @@ Retrieves stock price data, including 52-week high and low.
     *   `ticker` (string, required): The stock ticker.
     *   `period` (string, optional, default: "1y"): The period over which to retrieve data (e.g., "1y", "6mo").
 *   **Output:** A text summary of the stock data, including current price, 52-week high/low, and distance from high/low.
+*   **Implementation:** Routes to `FinancialDataServer._get_stock_data()`
 
 #### `calculate_macd`
 
@@ -85,6 +96,7 @@ Calculates the Moving Average Convergence Divergence (MACD) indicator for a stoc
     *   `ticker` (string, required): The stock ticker.
     *   `timeframe` (string, required, enum: ["daily", "weekly"]): The timeframe for the MACD calculation.
 *   **Output:** A text summary of the MACD analysis, including the MACD line, signal line, histogram, and a bullish/bearish signal.
+*   **Implementation:** Routes to `FinancialDataServer._calculate_macd()`
 
 #### `check_52week_low`
 
@@ -95,6 +107,7 @@ Checks if a stock is at or near its 52-week low.
     *   `ticker` (string, required): The stock ticker.
     *   `tolerance` (number, optional, default: 0.05): The percentage tolerance from the low (e.g., 0.05 for 5%).
 *   **Output:** A text summary of the 52-week low analysis, including whether the stock is near its low within the given tolerance.
+*   **Implementation:** Routes to `FinancialDataServer._check_52week_low()`
 
 #### `check_optionable`
 
@@ -104,3 +117,105 @@ Verifies if a stock has options available for trading.
 *   **Input Schema:**
     *   `ticker` (string, required): The stock ticker.
 *   **Output:** A text summary indicating whether options are available, and if so, the number of expirations and the next expiration date.
+*   **Implementation:** Routes to `FinancialDataServer._check_optionable()`
+
+---
+
+### SEC Filing Tools (from EdgarServer)
+
+#### `search_debt_conversions`
+
+Searches for debt conversion events in a company's 8-K filings.
+
+*   **Description:** Search for debt conversion events in 8-K filings.
+*   **Input Schema:**
+    *   `ticker` (string, required): The stock ticker of the company.
+    *   `months_back` (integer, optional, default: 3): The number of months to look back for filings.
+*   **Output:** A text summary of potential debt conversion events found, including filing dates, accession numbers, and extracted conversion prices.
+*   **Implementation:** Routes to `EdgarServer._search_debt_conversions()`
+
+#### `get_recent_filings`
+
+Retrieves recent SEC filings for a company.
+
+*   **Description:** Get recent SEC filings for a company.
+*   **Input Schema:**
+    *   `ticker` (string, required): The stock ticker of the company.
+    *   `form_type` (string, optional, default: "8-K"): The type of filing to retrieve.
+    *   `count` (integer, optional, default: 10): The maximum number of filings to return.
+*   **Output:** A text summary of recent filings, including filing dates and URLs.
+*   **Implementation:** Routes to `EdgarServer._get_recent_filings()`
+
+---
+
+## Tool Routing Logic
+
+The `UnifiedDebtReversionServer.call_tool()` method handles routing:
+
+```python
+async def call_tool(name: str, arguments: dict):
+    """Route tool calls to the appropriate sub-server"""
+    
+    # Financial tools
+    if name in ["get_stock_data", "calculate_macd", "check_52week_low", "check_optionable"]:
+        # Route to FinancialDataServer
+        return await self.financial_server._method_name(...)
+    
+    # EDGAR tools
+    elif name in ["search_debt_conversions", "get_recent_filings"]:
+        # Route to EdgarServer
+        return await self.edgar_server._method_name(...)
+```
+
+This routing happens transparently to the LLM - it simply calls the tool by name and receives the result.
+
+---
+
+## Testing MCP Server
+
+### List Available Tools
+
+Use the orchestrator's `list_available_tools()` method:
+
+```python
+from agents.dedalus_orchestrator import StockAnalysisAgent
+
+agent = StockAnalysisAgent()
+tools = await agent.list_available_tools()
+print(tools)
+```
+
+**Expected output**: List of all 6 tools (4 financial + 2 EDGAR)
+
+### Test Tool Calls
+
+```python
+# Test financial tool
+response = await agent.chat("Get stock data for AAPL")
+
+# Test EDGAR tool  
+response = await agent.chat("Search for debt conversions in TSLA filings")
+```
+
+---
+
+## Migration Notes
+
+**Previous Architecture** (deprecated):
+- Two separate servers: `financial-data` (port 8000) and `edgar-data` (port 8001)
+- Required Dedalus to merge tools from multiple endpoints
+- Tools were not consistently accessible to the LLM
+
+**Current Architecture** (recommended):
+- Single unified server: `debt-reversion-ai` (port 8000)
+- All tools registered and routed through one entry point
+- Guaranteed tool accessibility to the LLM
+- Simpler deployment and debugging
+
+If you need to run servers independently for testing, modify the sub-server `__init__` to pass a port number:
+
+```python
+# Standalone mode (for local testing)
+financial_server = FinancialDataServer(port=8000)
+await financial_server.server.run()
+```

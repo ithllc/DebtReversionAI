@@ -1,20 +1,20 @@
-from dedalus_labs import Dedalus
-# DedalusRunner isn't exported at the top-level in some SDK builds. Try importing
-# the helper from the runner subpackage as a fallback. If it's not available,
-# fall back to using the Dedalus client directly in the chat method.
+from dedalus_labs import Dedalus, AsyncDedalus
+# Import DedalusRunner for orchestrating MCP server tool calls.
+# DedalusRunner is the recommended way to use MCP servers with Dedalus.
 try:
-    # Preferred (if SDK exports it at top-level)
     from dedalus_labs import DedalusRunner  # type: ignore
-except Exception:
+except ImportError:
+    # Fallback for older SDK versions
     try:
-        # Fallback: import from the runner implementation package
         from dedalus_labs.lib.runner import DedalusRunner  # type: ignore
-    except Exception:
+    except ImportError:
         DedalusRunner = None  # type: ignore
 from dotenv import load_dotenv
 import os
 import asyncio
 import logging
+import time
+from collections import defaultdict
 from .prompts import SYSTEM_PROMPT
 
 load_dotenv()
@@ -25,30 +25,74 @@ if not logger.handlers:
     logging.basicConfig(level=logging.INFO)
 
 
+class RateLimiter:
+    """
+    Simple rate limiter to protect against excessive API calls.
+    Pattern 3 from the Dedalus MCP example.
+    """
+    def __init__(self, max_requests: int = 10, window_seconds: int = 60):
+        self.max_requests = max_requests
+        self.window_seconds = window_seconds
+        self.requests = defaultdict(list)
+
+    def is_allowed(self, identifier: str) -> bool:
+        """Check if request is allowed for this identifier"""
+        now = time.time()
+        # Clean old requests outside window
+        self.requests[identifier] = [
+            req_time
+            for req_time in self.requests[identifier]
+            if now - req_time < self.window_seconds
+        ]
+
+        # Check if under limit
+        if len(self.requests[identifier]) < self.max_requests:
+            self.requests[identifier].append(now)
+            return True
+        return False
+
+    def get_reset_time(self, identifier: str) -> int:
+        """Get seconds until rate limit resets"""
+        if not self.requests[identifier]:
+            return 0
+        oldest = min(self.requests[identifier])
+        return max(0, int(self.window_seconds - (time.time() - oldest)))
+
+
 class StockAnalysisAgent:
     def __init__(self):
-        self.client = Dedalus(
+        # Use AsyncDedalus for better async support
+        self.client = AsyncDedalus(
             api_key=os.getenv("DEDALUS_API_KEY"),
-            timeout=480.0,  # Extend timeout to 480 seconds
+            timeout=480.0,  # HTTP request timeout (8 minutes)
         )
-        # Instantiate DedalusRunner only if available. Some SDK installs do not
-        # re-export DedalusRunner at the top-level; we handled that above.
+        # Instantiate DedalusRunner only if available
         if DedalusRunner is not None:
             try:
                 self.runner = DedalusRunner(self.client)
-            except Exception:
-                # If instantiation fails for any reason, fall back to None and
-                # use the direct client path in `chat`.
+            except Exception as e:
+                logger.warning(f"Failed to instantiate DedalusRunner: {e}")
                 self.runner = None
         else:
             self.runner = None
+        
+        # Initialize rate limiter (Pattern 3: 10 requests per minute)
+        self.rate_limiter = RateLimiter(max_requests=10, window_seconds=60)
+        
         self.conversation_history = []
-        # Startup preflight: list available Dedalus models for this API key and
-        # cache a short list for operators/debugging. We log a short sample so
-        # operators can quickly see what models are available to the account.
+        # Startup preflight: list available Dedalus models for this API key
         self.available_models = []
+        self._preflight_models()
+
+    def _preflight_models(self):
+        """Preflight check to list available models (sync wrapper for async call)"""
         try:
-            resp = self.client.models.list()
+            # Create a temporary sync client for preflight
+            sync_client = Dedalus(
+                api_key=os.getenv("DEDALUS_API_KEY"),
+                timeout=480.0,
+            )
+            resp = sync_client.models.list()
             models = getattr(resp, "data", None)
             ids = []
             if models:
@@ -81,8 +125,32 @@ class StockAnalysisAgent:
         except Exception as e:
             logger.warning("Dedalus preflight: failed to list models: %s", e)
 
-    async def chat(self, user_message: str):
+    async def list_available_tools(self):
+        """
+        Pattern 1: List all tools from connected MCP servers.
+        This helps debug and verify that tools are properly exposed.
+        """
+        if not self.runner:
+            return {"error": "DedalusRunner not available"}
+        
+        try:
+            # List tools from the MCP server
+            tools = await self.runner.list_tools(
+                mcp_servers=["ficonnectme2anymcp/DebtReversionAI"]
+            )
+            logger.info(f"Available tools from MCP server: {tools}")
+            return tools
+        except Exception as e:
+            logger.error(f"Failed to list tools: {e}")
+            return {"error": str(e)}
+
+    async def chat(self, user_message: str, user_id: str = "default"):
         """Process user message and orchestrate tool calls via Dedalus"""
+        # Pattern 3: Rate limiting check
+        if not self.rate_limiter.is_allowed(user_id):
+            reset_time = self.rate_limiter.get_reset_time(user_id)
+            return f"⚠️ Rate limit exceeded. Please wait {reset_time} seconds before trying again. (Limit: 10 requests per minute)"
+        
         # Use Dedalus Runner with MCP servers. Wrap the call in try/except so
         # missing models or other remote errors return a readable message
         # instead of crashing the chat loop.
@@ -138,11 +206,10 @@ class StockAnalysisAgent:
             for model_id in try_list:
                 try:
                     # Use DedalusRunner when available (it orchestrates tools,
-                    # guardrails, and multi-turn flows). Otherwise fall back to
-                    # a simple single-call to the Dedalus client API.
+                    # guardrails, and multi-turn flows). 
                     if getattr(self, "runner", None) is not None:
-                        result = await asyncio.to_thread(
-                            self.runner.run,
+                        # Since we're using AsyncDedalus, runner.run can be awaited directly
+                        result = await self.runner.run(
                             input=user_message,
                             model=model_id,
                             mcp_servers=[
@@ -157,22 +224,18 @@ class StockAnalysisAgent:
                         # model succeeded.
                         return f"[model_used={model_id}]\n" + getattr(result, "final_output", str(result))
                     else:
-                        # Fallback: direct client call (single-turn). Keep the
-                        # same mcp_servers and instruction wrapping.
-                        def _call_client():
-                            return self.client.chat.completions.create(
-                                model=model_id,
-                                messages=[
-                                    {"role": "system", "content": SYSTEM_PROMPT},
-                                    {"role": "user", "content": user_message},
-                                ],
-                                mcp_servers=[
-                                    "ficonnectme2anymcp/DebtReversionAI",
-                                    "windsor/brave-search-mcp",
-                                ],
-                            )
-
-                        resp = await asyncio.to_thread(_call_client)
+                        # Fallback: direct async client call (single-turn).
+                        resp = await self.client.chat.completions.create(
+                            model=model_id,
+                            messages=[
+                                {"role": "system", "content": SYSTEM_PROMPT},
+                                {"role": "user", "content": user_message},
+                            ],
+                            mcp_servers=[
+                                "ficonnectme2anymcp/DebtReversionAI",
+                                "windsor/brave-search-mcp",
+                            ],
+                        )
 
                         # Attempt to extract assistant text from the response in a
                         # best-effort, robust way.

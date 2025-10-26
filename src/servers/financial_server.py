@@ -7,8 +7,12 @@ from datetime import datetime
 
 class FinancialDataServer:
     def __init__(self, port=8000):
-        self.server = Server("financial-data", port=port)
-        self._register_tools()
+        # Only create server if port is specified (for standalone mode)
+        if port is not None:
+            self.server = Server("financial-data", port=port)
+            self._register_tools()
+        else:
+            self.server = None
 
     def _register_tools(self):
         @self.server.list_tools()

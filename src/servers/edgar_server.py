@@ -8,10 +8,14 @@ import re
 
 class EdgarServer:
     def __init__(self, port=8001):
-        self.server = Server("edgar-data", port=port)
-        # Set SEC identity (required)
+        # Only create server if port is specified (for standalone mode)
+        if port is not None:
+            self.server = Server("edgar-data", port=port)
+            self._register_tools()
+        else:
+            self.server = None
+        # Set SEC identity (required for EDGAR access)
         set_identity(os.getenv("SEC_API_USER_AGENT"))
-        self._register_tools()
 
     def _register_tools(self):
         @self.server.list_tools()
