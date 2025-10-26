@@ -1,4 +1,16 @@
-from dedalus_labs import Dedalus, DedalusRunner
+from dedalus_labs import Dedalus
+# DedalusRunner isn't exported at the top-level in some SDK builds. Try importing
+# the helper from the runner subpackage as a fallback. If it's not available,
+# fall back to using the Dedalus client directly in the chat method.
+try:
+    # Preferred (if SDK exports it at top-level)
+    from dedalus_labs import DedalusRunner  # type: ignore
+except Exception:
+    try:
+        # Fallback: import from the runner implementation package
+        from dedalus_labs.lib.runner import DedalusRunner  # type: ignore
+    except Exception:
+        DedalusRunner = None  # type: ignore
 from dotenv import load_dotenv
 import os
 import asyncio
@@ -19,7 +31,17 @@ class StockAnalysisAgent:
             api_key=os.getenv("DEDALUS_API_KEY"),
             timeout=480.0,  # Extend timeout to 480 seconds
         )
-        self.runner = DedalusRunner(self.client)
+        # Instantiate DedalusRunner only if available. Some SDK installs do not
+        # re-export DedalusRunner at the top-level; we handled that above.
+        if DedalusRunner is not None:
+            try:
+                self.runner = DedalusRunner(self.client)
+            except Exception:
+                # If instantiation fails for any reason, fall back to None and
+                # use the direct client path in `chat`.
+                self.runner = None
+        else:
+            self.runner = None
         self.conversation_history = []
         # Startup preflight: list available Dedalus models for this API key and
         # cache a short list for operators/debugging. We log a short sample so
@@ -115,21 +137,63 @@ class StockAnalysisAgent:
 
             for model_id in try_list:
                 try:
-                    result = await asyncio.to_thread(
-                        self.runner.run,
-                        input=user_message,
-                        model=model_id,
-                        mcp_servers=[
-                            "ficonnectme2anymcp/DebtReversionAI",  # Private MCP servers hosted on Dedalus
-                            "windsor/brave-search-mcp",  # Dedalus marketplace tool
-                        ],
-                        instructions=SYSTEM_PROMPT,
-                        stream=False,
-                    )
+                    # Use DedalusRunner when available (it orchestrates tools,
+                    # guardrails, and multi-turn flows). Otherwise fall back to
+                    # a simple single-call to the Dedalus client API.
+                    if getattr(self, "runner", None) is not None:
+                        result = await asyncio.to_thread(
+                            self.runner.run,
+                            input=user_message,
+                            model=model_id,
+                            mcp_servers=[
+                                "ficonnectme2anymcp/DebtReversionAI",  # Private MCP servers hosted on Dedalus
+                                "windsor/brave-search-mcp",  # Dedalus marketplace tool
+                            ],
+                            instructions=SYSTEM_PROMPT,
+                            stream=False,
+                        )
 
-                    # If the runner returns fine, provide the output and which
-                    # model succeeded.
-                    return f"[model_used={model_id}]\n" + getattr(result, "final_output", str(result))
+                        # If the runner returns fine, provide the output and which
+                        # model succeeded.
+                        return f"[model_used={model_id}]\n" + getattr(result, "final_output", str(result))
+                    else:
+                        # Fallback: direct client call (single-turn). Keep the
+                        # same mcp_servers and instruction wrapping.
+                        def _call_client():
+                            return self.client.chat.completions.create(
+                                model=model_id,
+                                messages=[
+                                    {"role": "system", "content": SYSTEM_PROMPT},
+                                    {"role": "user", "content": user_message},
+                                ],
+                                mcp_servers=[
+                                    "ficonnectme2anymcp/DebtReversionAI",
+                                    "windsor/brave-search-mcp",
+                                ],
+                            )
+
+                        resp = await asyncio.to_thread(_call_client)
+
+                        # Attempt to extract assistant text from the response in a
+                        # best-effort, robust way.
+                        text = None
+                        try:
+                            choices = getattr(resp, "choices", None) or (resp.get("choices") if isinstance(resp, dict) else None)
+                            if choices:
+                                choice = choices[0]
+                                msg = getattr(choice, "message", None) or (choice.get("message") if isinstance(choice, dict) else None)
+                                if msg:
+                                    text = getattr(msg, "content", None) or (msg.get("content") if isinstance(msg, dict) else None)
+
+                            if not text:
+                                text = getattr(resp, "output", None) or getattr(resp, "final_output", None) or getattr(resp, "text", None)
+
+                            if not text:
+                                text = str(resp)
+                        except Exception:
+                            text = str(resp)
+
+                        return f"[model_used={model_id}]\n" + text
 
                 except Exception as e:
                     last_err = e
