@@ -59,7 +59,7 @@ The application follows a multi-layer architecture designed for autonomous opera
 - **Python 3.10+**
 - **Orchestration:** [Dedalus Labs](https://www.dedaluslabs.ai/) for the MCP gateway and agent orchestration.
 - **AI Browser:** [Manus AI](https://manus.im/) for browser automation, using the `openai` library as a client.
-- **LLM:** Google Gemini Pro (via Dedalus).
+- **LLM:** Anthropic Claude Sonnet-4 (via Dedalus).
 - **Financial Data:** `yfinance` for stock prices and `pandas-ta` for technical indicators.
 - **SEC Filings:** `edgartools` for accessing the EDGAR database.
 

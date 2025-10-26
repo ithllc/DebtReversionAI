@@ -6,6 +6,21 @@ This document provides an overview of the Model-Context-Protocol (MCP) servers u
 
 The MCP servers are built using the `mcp.server` library. They expose a set of tools that can be listed and called by an MCP client. Each server is responsible for a specific domain of data.
 
+## Calling Deployed MCP Servers
+
+When the `edgar-data` and `financial-data` servers are deployed to a platform like Dedalus Labs, they can be grouped under a single, unified endpoint. In this project, that endpoint is `ficonnectme2anymcp/DebtReversionAI`.
+
+This single address acts as a gateway to the combined toolset of all servers deployed under it.
+
+### How it Works
+
+1.  **Tool Discovery:** The agent's orchestrator (`dedalus_orchestrator.py`) sends a `list_tools` request to the `ficonnectme2anymcp/DebtReversionAI` endpoint.
+2.  **Merged Toolset:** The Dedalus platform intercepts this request and gathers the tool definitions from both the `edgar-data` and `financial-data` servers. It returns a single, merged list of all available tools to the agent.
+3.  **Model Reasoning:** The AI model receives the user's prompt along with this complete "menu" of tools. It can then reason about which tool is best suited to the task, regardless of which server it originated from. For example, it knows to use `check_52week_low` for price analysis and `search_debt_conversions` for filing research.
+4.  **Platform Routing:** When the agent decides to call a specific tool (e.g., `get_stock_data`), the orchestrator sends the request back to the main `ficonnectme2anymcp/DebtReversionAI` endpoint. The platform is responsible for routing this call to the correct underlying microservice (the `financial-data` server in this case) that originally registered the tool.
+
+This architecture allows for a clean separation of concerns, where individual servers handle specific tasks, but the agent can access them all through a single, simplified interface.
+
 ## Edgar Server
 
 The Edgar Server (`mcp_servers/edgar_server.py`) interacts with the SEC's EDGAR database to retrieve information from company filings.

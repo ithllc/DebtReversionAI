@@ -117,8 +117,7 @@ class StockAnalysisAgent:
                         input=user_message,
                         model=model_id,
                         mcp_servers=[
-                            "financial-data-server",  # Our deployed MCP server
-                            "edgar-server",  # Our deployed MCP server
+                            "ficonnectme2anymcp/DebtReversionAI",  # Private MCP servers hosted on Dedalus
                             "windsor/brave-search-mcp",  # Dedalus marketplace tool
                         ],
                         instructions=SYSTEM_PROMPT,
