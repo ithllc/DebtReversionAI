@@ -15,7 +15,10 @@ if not logger.handlers:
 
 class StockAnalysisAgent:
     def __init__(self):
-        self.client = Dedalus(api_key=os.getenv("DEDALUS_API_KEY"))
+        self.client = Dedalus(
+            api_key=os.getenv("DEDALUS_API_KEY"),
+            timeout=480.0,  # Extend timeout to 480 seconds
+        )
         self.runner = DedalusRunner(self.client)
         self.conversation_history = []
         # Startup preflight: list available Dedalus models for this API key and
