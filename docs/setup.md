@@ -4,6 +4,22 @@
 
 First, create a virtual environment and install the required dependencies.
 
+### Dependency Management (`pyproject.toml`)
+
+This project uses a `pyproject.toml` file to manage its dependencies. This is the modern standard for Python projects and is recommended by the Dedalus Labs build system. While the platform can fall back to using a `requirements.txt` file, using `pyproject.toml` resolves warnings in the build process and ensures a more reliable and standardized setup.
+
+To install all necessary dependencies, run:
+
+```bash
+pip install .
+```
+
+This command reads the `pyproject.toml` file and installs all the packages listed under `dependencies`.
+
+### Manual Installation (Legacy)
+
+If you prefer to install dependencies manually, you can use the `requirements.txt` file.
+
 ```bash
 # Navigate to the project directory
 cd DebtReversionAI
@@ -13,9 +29,6 @@ python3 -m venv aitinkerersdebtreversion
 
 # Activate the virtual environment
 source aitinkerersdebtreversion/bin/activate  # On Windows use `aitinkerersdebtreversion\Scripts\activate`
-
-# Install local pandas-ta dependency
-pip install -e ../pandas-ta/
 
 # Install runtime dependencies
 pip install -r requirements.txt

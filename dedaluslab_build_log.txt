@@ -1,0 +1,472 @@
+docker-build
+01:35:04.693
+#0 building with "default" instance using docker driver
+
+01:35:10.755
+#8 2.421 ca-certificates libc-bin libc-[REDACTED] libc6 libc6-dev libcrypt-dev libexpat1
+
+01:35:10.755
+#8 2.421 libexpat1-dev libgssapi-krb5-2 libjs-jquery libjs-sphinxdoc libjs-underscore
+
+01:35:10.755
+#8 2.421 libk5crypto3 libkeyutils1 libkrb5-3 libkrb5support0 libncursesw6 libnsl-dev
+
+01:35:10.755
+#8 2.421 libnsl2 libpython3-dev libpython3-stdlib libpython3.11 libpython3.11-dev
+
+01:35:10.755
+#8 2.422 libpython3.11-minimal libpython3.11-stdlib libreadline8 libsqlite3-0 libssl3
+
+01:35:10.755
+#8 2.422 libtirpc-common libtirpc-dev libtirpc3 linux-libc-dev media-types openssl
+
+01:35:10.755
+#8 2.422 python3-distutils python3-lib2to3 python3-minimal python3-pip-whl
+
+01:35:10.755
+#8 2.422 python3-pkg-resources python3-setuptools python3-setuptools-whl
+
+01:35:10.755
+#8 2.422 python3-wheel python3.11 python3.11-dev python3.11-minimal python3.11-venv
+
+01:35:10.755
+#8 2.422 readline-common rpcsvc-proto zlib1g-dev
+
+01:35:10.755
+#8 2.422 glibc-doc libc-l10n locales libnss-nis libnss-nisplus manpages-dev krb5-doc
+
+01:35:10.755
+#8 2.422 krb5-user python3-doc python3-tk python-setuptools-doc python3.11-doc
+
+01:35:10.755
+#8 2.422 binutils binfmt-support readline-doc
+
+01:35:10.755
+#8 2.422 Recommended packages:
+
+01:35:10.755
+#8 2.422 manpages manpages-dev libc-devtools javascript-common krb5-locales libgpm2
+
+01:35:10.755
+#8 2.422 build-essential
+
+01:35:12.767
+#8 2.790 bc ca-certificates libc-[REDACTED] libc6-dev libcrypt-dev libexpat1
+
+01:35:12.767
+#8 2.790 libexpat1-dev libgssapi-krb5-2 libjs-jquery libjs-sphinxdoc libjs-underscore
+
+01:35:12.767
+#8 2.790 libk5crypto3 libkeyutils1 libkrb5-3 libkrb5support0 libncursesw6 libnsl-dev
+
+01:35:12.767
+#8 2.790 libnsl2 libpython3-dev libpython3-stdlib libpython3.11 libpython3.11-dev
+
+01:35:12.767
+#8 2.790 libpython3.11-minimal libpython3.11-stdlib libreadline8 libsqlite3-0 libssl3
+
+01:35:12.767
+#8 2.790 libtirpc-common libtirpc-dev libtirpc3 linux-libc-dev media-types openssl
+
+01:35:12.767
+#8 2.790 python3 python3-dev python3-distutils python3-lib2to3 python3-minimal
+
+01:35:12.767
+#8 2.790 python3-pip python3-pip-whl python3-pkg-resources python3-setuptools
+
+01:35:12.767
+#8 2.790 python3-setuptools-whl python3-venv python3-wheel python3.11 python3.11-dev
+
+01:35:12.767
+#8 2.791 python3.11-minimal python3.11-venv readline-common rpcsvc-proto zlib1g-dev
+
+01:35:12.767
+#8 2.791 libc-bin libc6
+
+01:35:12.767
+#8 2.809 Need to get [size] of archives.
+
+01:35:12.767
+#8 2.809 After this operation, 108 MB of additional disk space will be used.
+
+01:35:18.809
+#8 9.532 Updating certificates in /etc/ssl/certs...
+
+01:35:18.809
+#8 9.862 142 added, 0 removed; done.
+
+01:35:20.820
+#8 10.60 running python rtupdate hooks for python3.11...
+
+01:35:20.820
+#8 10.60 running python post-rtupdate hooks for python3.11...
+
+01:35:20.820
+#8 12.50 Updating certificates in /etc/ssl/certs...
+
+01:35:22.830
+#8 12.76 0 added, 0 removed; done.
+
+01:35:22.830
+#8 12.76 Running hooks in /etc/ca-certificates/update.d...
+
+01:35:22.830
+#8 12.76 done.
+
+01:35:24.843
+#14 0.326 🔍 Detecting Python project configuration...
+
+01:35:24.843
+#14 0.327 ❌ pyproject.toml not found. This script requires a pyproject.toml file.
+
+01:35:24.843
+#14 0.327 For legacy projects with requirements.txt, please migrate to pyproject.toml
+
+01:35:24.843
+#14 0.327 ⚠️ Detection script failed, using defaults
+
+01:35:24.843
+#14 0.328 ✅ Using detected configuration
+
+01:35:24.843
+#15 0.394 📦 Pip-only project detected, using system Python...
+
+01:35:24.843
+#15 0.394 Python 3.11.2
+
+01:35:26.853
+#16 0.434 📦 Using system Python for pip-only project...
+
+01:35:26.853
+#16 0.435 Python 3.11.2
+
+01:35:28.863
+#16 3.235 Requirement already satisfied: pip in ./.venv/lib/python3.11/site-packages (23.0.1)
+
+01:35:28.863
+#16 3.332 Collecting pip
+
+01:35:28.863
+#16 3.412 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.8/[size] [size]/s eta 0:00:00
+
+01:35:28.863
+#16 3.452 Attempting uninstall: pip
+
+01:35:28.863
+#16 3.454 Found existing installation: pip 23.0.1
+
+01:35:28.863
+#16 3.580 Successfully uninstalled pip-23.0.1
+
+01:35:28.863
+#16 4.200 Successfully installed pip-25.3
+
+01:35:28.863
+#16 4.253 Installing from requirements.txt...
+(×180)
+
+01:35:29.645
+#16 4.573 Error: ../dedalus-sdk-python is not a valid editable requirement. It should either be a path to a local project or a VCS URL (beginning with bzr+http, bzr+https, bzr+ssh, bzr+sftp, bzr+ftp, bzr+lp, bzr+file, git+http, git+https, git+ssh, git+git, git+file, hg+file, hg+http, hg+https, hg+ssh, hg+static-http, svn+ssh, svn+http, svn+https, svn+svn, svn+file).
+
+01:35:29.645
+------
+
+01:35:29.645
+> [stage-1 10/16] RUN --mount=type=cache,target=[path] <<'EOF' (# Source the detected configuration...):
+
+01:35:29.645
+3.412 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.8/[size] [size]/s eta 0:00:00
+
+01:35:29.645
+3.452 Attempting uninstall: pip
+
+01:35:29.645
+3.454 Found existing installation: pip 23.0.1
+
+01:35:29.645
+3.580 Successfully uninstalled pip-23.0.1
+
+01:35:29.645
+4.200 Successfully installed pip-25.3
+
+01:35:29.645
+4.573 Error: ../dedalus-sdk-python is not a valid editable requirement. It should either be a path to a local project or a VCS URL (beginning with bzr+http, bzr+https, bzr+ssh, bzr+sftp, bzr+ftp, bzr+lp, bzr+file, git+http, git+https, git+ssh, git+git, git+file, hg+file, hg+http, hg+https, hg+ssh, hg+static-http, svn+ssh, svn+http, svn+https, svn+svn, svn+file).
+
+01:35:29.645
+------
+
+01:35:29.645
+3 warnings found (use docker --debug to expand):
+
+01:35:29.645
+- FromPlatformFlagConstDisallowed: FROM --platform flag should not use constant value "linux/arm64" (line 2)
+
+01:35:29.645
+- FromPlatformFlagConstDisallowed: FROM --platform flag should not use constant value "linux/arm64" (line 6)
+
+01:35:29.645
+- UndefinedVar: Usage of undefined variable '$BUILD_DIR' (line 39)
+
+01:35:29.645
+Dockerfile:117
+
+01:35:29.645
+--------------------
+
+01:35:29.645
+116 | # Install dependencies
+
+01:35:29.645
+117 | >>> RUN --mount=type=cache,target=[path] <<'EOF'
+
+01:35:29.645
+118 | >>> # Source the detected configuration
+
+01:35:29.645
+119 | >>> if [ -f [temp] ]; then
+
+01:35:29.645
+120 | >>> . [temp]
+
+01:35:29.645
+121 | >>> fi
+
+01:35:29.645
+122 | >>>
+
+01:35:29.645
+124 | >>>
+
+01:35:29.645
+125 | >>> # Check if the project structure needs adjustment for hatchling
+
+01:35:29.645
+126 | >>> if grep -q "hatchling" pyproject.toml 2>/dev/null; then
+
+01:35:29.645
+127 | >>> # Extract the package name from pyproject.toml
+
+01:35:29.645
+128 | >>> PACKAGE_NAME=$(grep -m1 "^name" pyproject.toml | sed 's/.*=.*"\(.*\)".*/\1/' | tr '-' '_')
+
+01:35:29.645
+129 | >>>
+
+01:35:29.645
+130 | >>> # If there's no package directory but there are Python files in root, create the structure
+
+01:35:29.645
+131 | >>> if [ -n "$PACKAGE_NAME" ] && [ ! -d "$PACKAGE_NAME" ] && ls *.py >/dev/null 2>&1; then
+
+01:35:29.645
+133 | >>> mkdir -p "$PACKAGE_NAME"
+
+01:35:29.645
+134 | >>> touch "$PACKAGE_NAME/__init__.py"
+
+01:35:29.645
+135 | >>>
+
+01:35:29.645
+136 | >>> # Move Python files into the package directory
+
+01:35:29.645
+137 | >>> for pyfile in *.py; do
+
+01:35:29.645
+138 | >>> if [ -f "$pyfile" ] && [ "$pyfile" != "setup.py" ]; then
+
+01:35:29.645
+140 | >>> mv "$pyfile" "$PACKAGE_NAME/"
+
+01:35:29.645
+141 | >>> fi
+
+01:35:29.645
+142 | >>> done
+
+01:35:29.645
+143 | >>> fi
+
+01:35:29.645
+144 | >>> fi
+
+01:35:29.645
+145 | >>>
+
+01:35:29.645
+146 | >>> # Detect if this is a uv project or pip-only project
+
+01:35:29.645
+147 | >>> HAS_UV_FILES=false
+
+01:35:29.645
+148 | >>> if [ -f "lock file" ] || [ -f "pyproject.toml" ] && grep -q "tool.uv" pyproject.toml 2>/dev/null; then
+
+01:35:29.645
+149 | >>> HAS_UV_FILES=true
+
+01:35:29.645
+150 | >>> fi
+
+01:35:29.645
+151 | >>>
+
+01:35:29.645
+152 | >>> # Ensure Python is available
+
+01:35:29.645
+153 | >>> if [ "$HAS_UV_FILES" = "true" ]; then
+
+01:35:29.645
+154 | >>> uv python list || {
+
+01:35:29.645
+156 | >>> uv python install 3.10
+
+01:35:29.645
+157 | >>> }
+
+01:35:29.645
+158 | >>> else
+
+01:35:29.645
+160 | >>> python3 --version || {
+
+01:35:29.645
+162 | >>> exit 1
+
+01:35:29.645
+163 | >>> }
+
+01:35:29.645
+164 | >>> fi
+
+01:35:29.645
+165 | >>>
+
+01:35:29.645
+166 | >>> # Try to install dependencies based on project type
+
+01:35:29.645
+167 | >>> if [ "$HAS_UV_FILES" = "true" ]; then
+
+01:35:29.645
+168 | >>> # UV-based project
+
+01:35:29.645
+169 | >>> if [ -f "lock file" ]; then
+
+01:35:29.645
+176 | >>> }
+
+01:35:29.645
+177 | >>> }
+
+01:35:29.645
+178 | >>> else
+
+01:35:29.645
+182 | >>> if [ -f "requirements.txt" ]; then
+
+01:35:29.645
+184 | >>> elif [ -f "pyproject.toml" ]; then
+
+01:35:29.645
+186 | >>> fi
+
+01:35:29.645
+187 | >>> }
+
+01:35:29.645
+188 | >>> fi
+
+01:35:29.645
+189 | >>> else
+
+01:35:29.645
+190 | >>> # Pip-only project
+
+01:35:29.645
+192 | >>>
+
+01:35:29.645
+193 | >>> # Create virtual environment for isolation
+
+01:35:29.645
+194 | >>> python3 -m venv [app]
+
+01:35:29.645
+195 | >>> . [app]
+
+01:35:29.645
+196 | >>>
+
+01:35:29.645
+197 | >>> # Upgrade pip
+
+01:35:29.645
+198 | >>> pip install --upgrade pip
+
+01:35:29.645
+199 | >>>
+
+01:35:29.645
+200 | >>> if [ -f "requirements.txt" ]; then
+
+01:35:29.645
+202 | >>> pip install -r requirements.txt
+
+01:35:29.645
+203 | >>> elif [ -f "pyproject.toml" ]; then
+
+01:35:29.645
+205 | >>> # Check if fastmcp requires Python 3.10+
+
+01:35:29.645
+206 | >>> if grep -q "fastmcp" pyproject.toml 2>/dev/null; then
+
+01:35:29.645
+207 | >>> PYTHON_VERSION=$(python3 --version | cut -d' ' -f2 | cut -d'.' -f1,2)
+
+01:35:29.645
+211 | >>> fi
+
+01:35:29.645
+212 | >>> fi
+
+01:35:29.645
+213 | >>> pip install .
+
+01:35:29.645
+214 | >>> elif [ -f "setup.py" ]; then
+
+01:35:29.645
+216 | >>> pip install .
+
+01:35:29.645
+217 | >>> else
+
+01:35:29.645
+219 | >>> fi
+
+01:35:29.645
+220 | >>> fi
+
+01:35:29.645
+221 | >>> EOF
+
+01:35:29.645
+222 |
+
+01:35:29.645
+--------------------
+
+01:35:29.645
+❌ Docker build failed or timed out after 20 minutes
+
+01:35:29.645
+Build completed
+
+01:35:40.239
+Build failed: Build FAILED
