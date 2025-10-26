@@ -1,6 +1,6 @@
 # DebtReversionAI
 
-> Proof-of-Concept for an autonomous FinTech AI agent that discovers high-probability mean reversion trades by analyzing stocks at 52-week lows with recent debt conversions—turning SEC filings and market technicals into actionable opportunities through conversational intelligence.
+> Proof-of-Concept for an autonomous FinTech AI agent that discovers high-probability mean reversion trades by analyzing stocks at 52-week lows with recent debt conversions—turning SEC filings and market technicals into actionable opportunities through conversational intelligence. Do not use for financial advice, educational tool only.
 
 ---
 
@@ -12,7 +12,7 @@ DebtReversionAI is an autonomous AI agent that identifies high-potential mean re
 - AI-powered browser automation
 - A conversational interface (text and voice)
 
-The agent is orchestrated using the Dedalus Labs platform, with Gemini as the core reasoning model.
+The agent is orchestrated using the Dedalus Labs platform, with Anthropic Claude Sonnet 4 as the core reasoning model.
 
 ## 🏗️ Architecture
 
