@@ -1,7 +1,7 @@
 from mcp.server import Server
 from mcp.types import Tool, TextContent
 import yfinance as yf
-import pandas_ta as ta
+import pandas as pd
 from datetime import datetime
 
 
@@ -110,6 +110,37 @@ class FinancialDataServer:
             )
         ]
 
+    def _calculate_macd_manual(self, close_prices: pd.Series):
+        """
+        Calculates MACD, Signal Line, and Histogram manually using pandas.
+        """
+        # Standard MACD parameters
+        short_ema_period = 12
+        long_ema_period = 26
+        signal_ema_period = 9
+
+        # Calculate the Short-term and Long-term Exponential Moving Averages (EMAs)
+        short_ema = close_prices.ewm(span=short_ema_period, adjust=False).mean()
+        long_ema = close_prices.ewm(span=long_ema_period, adjust=False).mean()
+
+        # Calculate the MACD line
+        macd_line = short_ema - long_ema
+
+        # Calculate the Signal line
+        signal_line = macd_line.ewm(span=signal_ema_period, adjust=False).mean()
+
+        # Calculate the MACD Histogram
+        histogram = macd_line - signal_line
+
+        # Create a DataFrame to match the expected output format
+        macd_df = pd.DataFrame({
+            'MACD_12_26_9': macd_line,
+            'MACDs_12_26_9': signal_line,
+            'MACDh_12_26_9': histogram
+        })
+
+        return macd_df
+
     async def _calculate_macd(self, ticker: str, timeframe: str):
         """Calculate MACD indicator"""
         stock = yf.Ticker(ticker)
@@ -120,7 +151,7 @@ class FinancialDataServer:
             hist = stock.history(period="2y", interval="1wk")
 
         # Calculate MACD
-        macd = ta.macd(hist["Close"])
+        macd = self._calculate_macd_manual(hist["Close"])
 
         if macd is None or macd.empty:
             return [
