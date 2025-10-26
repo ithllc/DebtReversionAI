@@ -25,22 +25,59 @@ pytest
 
 Pytest will automatically discover and run all the test files located in the `tests/` directory.
 
-## Test Types
+## Testing the MCP Servers
 
-The test suite is composed of two main types of tests:
+The MCP servers can be tested both locally and after deployment.
 
-### 1. Unit Tests
+### Local Testing
 
-The files `test_financial.py`, `test_edgar.py`, `test_dedalus.py`, and `test_manus.py` contain unit tests for the application's core components.
+To test the MCP servers locally, you can run them directly and use a tool like `curl` or a simple Python script to send requests.
 
-**Important:** These tests use mocking to isolate the code from external services. They **do not** make live network calls to `yfinance`, the SEC EDGAR API, Dedalus Labs, or Manus AI. This allows you to verify the internal logic of the application without needing API keys or a live internet connection.
+1.  **Start the servers:**
 
-### 2. Integration Tests
+    ```bash
+    # In one terminal
+    python mcp_servers/edgar_server.py
 
-The file `test_integration.py` contains a placeholder for an end-to-end integration test. This test is currently **skipped** by default, as indicated by the `@pytest.mark.skip` decorator.
+    # In another terminal
+    python mcp_servers/financial_server.py
+    ```
 
-To run it, you would need a fully configured live environment, including:
-- Valid API keys in your `.env` file.
-- The MCP servers (`financial_server.py`, `edgar_server.py`) deployed on the Dedalus Labs platform.
+2.  **Test with `curl`:**
 
-This test is intended to verify the complete workflow of the agent interacting with all live services.
+    You can call the `list_tools` endpoint to see the available tools.
+
+    **Edgar Server:**
+    ```bash
+    curl -X POST http://localhost:8000/list_tools
+    ```
+
+    **Financial Data Server:**
+    ```bash
+    curl -X POST http://localhost:8001/list_tools
+    ```
+
+    To call a specific tool, you can send a POST request to the `call_tool` endpoint.
+
+    **Example: `get_stock_data` on the Financial Data Server**
+    ```bash
+    curl -X POST http://localhost:8001/call_tool -H "Content-Type: application/json" -d '{"name": "get_stock_data", "arguments": {"ticker": "AAPL"}}'
+    ```
+
+### Deployed Testing
+
+Once the servers are deployed to Dedalus Labs, you can use the `dedalus` CLI to test them.
+
+1.  **List deployed services:**
+
+    ```bash
+    dedalus services list
+    ```
+
+2.  **Call a tool on a deployed service:**
+
+    ```bash
+    dedalus services call financial-data get_stock_data '{"ticker": "AAPL"}'
+    ```
+
+This allows you to test the deployed servers in the same way you would test them locally.
