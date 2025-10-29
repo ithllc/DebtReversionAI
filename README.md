@@ -39,10 +39,16 @@ The application follows a multi-layer architecture designed for autonomous opera
                             ↓
 ┌─────────────────────────────────────────────────────────────┐
 │                    MCP SERVER LAYER (Dedalus)                │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
-│  │Financial Data│  │  EDGAR Data  │  │  AI Browser  │      │
-│  │  MCP Server  │  │  MCP Server  │  │ (Manus AI)   │      │
-│  └──────────────┘  └──────────────┘  └──────────────┘      │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │    Unified DebtReversionAI MCP Server (stdio)        │   │
+│  │  - Financial tools (yfinance, pandas-ta)             │   │
+│  │  - EDGAR tools (edgartools)                          │   │
+│  │  - Deployed as: ficonnectme2anymcp/DebtReversionAI   │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────┐                                           │
+│  │  AI Browser  │                                           │
+│  │ (Manus AI)   │                                           │
+│  └──────────────┘                                           │
 └─────────────────────────────────────────────────────────────┘
                             ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -126,24 +132,37 @@ MANUS_API_KEY=your_manus_key_here
 SEC_API_USER_AGENT=your.email@example.com
 ```
 
-### 4. Deploy MCP Servers
+### 4. Deploy MCP Server
 
-The MCP servers are defined in the `src/servers/` directory and launched by the main `src/main.py` entrypoint, as required by the Dedalus Labs deployment platform.
+The MCP server is defined in `src/main.py` with an entry point wrapper in `main.py` for Dedalus deployment.
 
-These servers expose the financial and SEC data tools to the agent. **The application will not be fully functional until these servers are deployed and running**, as the agent relies on them to perform its core tasks. See the [Setup Guide](docs/setup.md) for deployment instructions.
+The unified server exposes all financial and SEC data tools to the agent. **The application will not be fully functional until this server is deployed to Dedalus Labs as `ficonnectme2anymcp/DebtReversionAI`**, as the agent relies on it to perform its core tasks.
 
-### 5. Run the Application
+**Deployment Requirements:**
+- Set environment variable: `SEC_API_USER_AGENT=your.email@example.com` in Dedalus UI
+- Server uses stdio transport (not HTTP ports) for Model Context Protocol
+- Entry point: `main.py` wrapper → `src/main.py` unified server
 
-Once the setup is complete and the MCP servers are running (either locally via Docker or deployed), you can start the chat interface.
+See the [Setup Guide](docs/setup.md) for detailed deployment instructions.
+
+### 5. Run the Agent
+
+Once the setup is complete and the MCP server is deployed, you can start the agent chat interface:
 
 ```bash
-python main.py
+python agent_runner.py
 ```
 
 You can now interact with the DebtReversionAI agent from your terminal.
 
 **Example Prompt:**
-`Find stocks at 52-week lows with recent debt conversions.`
+`Use stock ticker 'ATCH' and check the 52-week low and calculate MACD.`
+
+**To test the MCP server locally** (for debugging):
+```bash
+export SEC_API_USER_AGENT="your.email@example.com"
+python main.py
+```
 
 ---
 
@@ -152,24 +171,31 @@ You can now interact with the DebtReversionAI agent from your terminal.
 ```
 DebtReversionAI/
 ├── .env                  # Local environment variables (API keys)
-├── main.py               # Main application entry point for the agent
+├── main.py               # Entry point wrapper for MCP server deployment
+├── agent_runner.py       # Agent chat interface entry point
 ├── requirements.txt      # Project dependencies
+├── pyproject.toml        # Modern Python project configuration
 ├── README.md             # This file
-├── src/                  # Source code for deployable MCP servers
-│   ├── main.py           # Main entry point for all MCP servers
+├── src/                  # Source code for unified MCP server
+│   ├── main.py           # UnifiedDebtReversionServer (all tools)
 │   └── servers/
-│       ├── edgar_server.py
-│       └── financial_server.py
+│       ├── edgar_server.py       # SEC filing tools
+│       └── financial_server.py   # Stock data tools
 ├── agents/               # Core agent logic and prompts
-│   ├── dedalus_orchestrator.py
-│   ├── manus_browser.py
-│   └── prompts.py
+│   ├── dedalus_orchestrator.py   # StockAnalysisAgent
+│   ├── manus_browser.py          # AI browser integration
+│   └── prompts.py                # System prompts
 ├── interface/            # User interface (chat, voice)
 │   ├── chat.py
 │   └── voice.py
-├── utils/                # Helper functions and utilities (placeholders)
-├── tests/                # Tests for the application (placeholders)
+├── utils/                # Helper functions and utilities
+├── tests/                # Test suite (pytest)
+│   ├── test_financial.py
+│   ├── test_edgar.py
+│   └── test_dedalus.py
 └── docs/                 # Detailed documentation
     ├── architecture.md
-    └── setup.md
+    ├── mcp_servers.md
+    ├── setup.md
+    └── testing.md
 ```

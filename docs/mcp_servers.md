@@ -42,9 +42,34 @@ Tool Router (routes based on tool name)
 ### Deployment
 
 When deployed to Dedalus Labs, the unified server:
-- Runs on **port 8000**
+- Uses **stdio transport** (stdin/stdout) for Model Context Protocol communication
+- Entry point: `main.py` (wrapper) → `src/main.py` (actual server)
 - Is accessible as: `ficonnectme2anymcp/DebtReversionAI`
 - Exposes **all tools** from both financial and EDGAR servers through a single endpoint
+- Requires environment variable: `SEC_API_USER_AGENT` (your email address)
+
+### Deployment Architecture
+
+The project uses an **entry point wrapper pattern**:
+
+```
+Dedalus runs: uv run main
+    ↓
+main.py (wrapper with error handling)
+    ↓
+imports src.main and runs server_main()
+    ↓
+src/main.py: UnifiedDebtReversionServer
+    ↓
+stdio_server() context manager
+    ↓
+server.run(read_stream, write_stream, init_options)
+```
+
+This pattern ensures:
+- MCP server (not agent) starts when deployed
+- Comprehensive error handling and debugging output
+- Proper stdio transport for MCP communication
 
 ### Agent Integration
 
@@ -207,15 +232,19 @@ response = await agent.chat("Search for debt conversions in TSLA filings")
 - Tools were not consistently accessible to the LLM
 
 **Current Architecture** (recommended):
-- Single unified server: `debt-reversion-ai` (port 8000)
+- Single unified server: `debt-reversion-ai` (stdio transport)
+- Entry point wrapper: `main.py` → `src/main.py`
 - All tools registered and routed through one entry point
 - Guaranteed tool accessibility to the LLM
 - Simpler deployment and debugging
+- Requires: `SEC_API_USER_AGENT` environment variable
 
-If you need to run servers independently for testing, modify the sub-server `__init__` to pass a port number:
+**Local Testing Only**:
+For local development, you can run the server directly:
 
-```python
-# Standalone mode (for local testing)
-financial_server = FinancialDataServer(port=8000)
-await financial_server.server.run()
+```bash
+export SEC_API_USER_AGENT="your.email@example.com"
+python main.py
 ```
+
+The server will start with stdio transport and wait for MCP protocol messages on stdin.

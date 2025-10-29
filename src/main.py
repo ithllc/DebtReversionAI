@@ -6,15 +6,15 @@ import asyncio
 import os
 from mcp.server import Server
 from mcp.types import Tool, TextContent
-from servers.financial_server import FinancialDataServer
-from servers.edgar_server import EdgarServer
+from src.servers.financial_server import FinancialDataServer
+from src.servers.edgar_server import EdgarServer
 
 
 class UnifiedDebtReversionServer:
     """Unified MCP server that routes tool calls to appropriate sub-servers"""
     
-    def __init__(self, port=8000):
-        self.server = Server("debt-reversion-ai", port=port)
+    def __init__(self):
+        self.server = Server("debt-reversion-ai")
         
         # Initialize sub-servers (without running them separately)
         self.financial_server = FinancialDataServer(port=None)
@@ -148,7 +148,8 @@ class UnifiedDebtReversionServer:
 async def main():
     """
     Main entrypoint for the unified MCP server.
-    Dedalus Labs platform looks for this src/main.py file to start the server.
+    This server is started by the root-level main.py wrapper when deployed on Dedalus Labs.
+    Uses stdio transport for MCP communication (not HTTP ports).
     """
     print("Starting unified DebtReversionAI MCP server...")
 
@@ -157,16 +158,27 @@ async def main():
     if not sec_identity:
         raise ValueError("SEC_API_USER_AGENT environment variable is not set. Please set it to a valid email address.")
 
-    # Create and run the unified server
-    unified_server = UnifiedDebtReversionServer(port=8000)
+    # Create unified server with stdio transport
+    unified_server = UnifiedDebtReversionServer()
     
-    print("Launching unified DebtReversionAI server on port 8000...")
+    print("Launching unified DebtReversionAI server via stdio transport...")
     print("Available tools: get_stock_data, calculate_macd, check_52week_low, check_optionable, search_debt_conversions, get_recent_filings")
     
-    await unified_server.server.run()
+    # Run with stdio transport (stdin/stdout)
+    from mcp.server.stdio import stdio_server
+    
+    async with stdio_server() as (read_stream, write_stream):
+        await unified_server.server.run(
+            read_stream,
+            write_stream,
+            unified_server.server.create_initialization_options()
+        )
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
         print("\nShutting down server.")
+    except Exception as e:
+        print(f"\n❌ Server error: {e}")
+        exit(1)

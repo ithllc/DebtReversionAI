@@ -61,7 +61,7 @@ SEC_API_USER_AGENT=your.email@example.com
 
 ## 3. Deploying MCP Servers
 
-The MCP servers are defined in the `src/servers/` directory and launched by the main `src/main.py` entrypoint, as required by the Dedalus Labs deployment platform.
+The MCP server is defined in `src/main.py` and launched via an entry point wrapper in `main.py`, as required by the Dedalus Labs deployment platform.
 
 ### Deployment from GitHub
 
@@ -70,31 +70,39 @@ The Dedalus Labs platform is designed to deploy Python servers directly from a G
 1.  **Connect Your Repository:** In the Dedalus dashboard, connect your GitHub account and select the `DebtReversionAI` repository.
 2.  **Configure Build Settings:**
     *   **Branch:** `main`
-    *   **Build Type:** The platform should automatically detect a Python project. It will look for the required `src/main.py` file.
-3.  **Configure Run Settings:**
-    *   **Start Command:** The platform will automatically run `python src/main.py`.
-    *   **Ports:** Expose ports `8000` and `8001` for the Edgar and Financial Data servers, respectively.
-    *   **Environment Variables:** Add your `SEC_API_USER_AGENT` to the environment variables section in the Dedalus UI.
+    *   **Build Type:** The platform should automatically detect a Python project with `pyproject.toml`.
+    *   **Entry Point:** The platform will execute `uv run main` which runs the `main:main` function defined in `pyproject.toml`
+3.  **Configure Environment Variables:**
+    *   **Required:** Add `SEC_API_USER_AGENT=your.email@example.com` to environment variables in the Dedalus UI
+    *   **Optional:** Add `DEDALUS_MODEL_LIST` for model preference
 
-### Local Deployment using Docker
+The server uses **stdio transport** (not HTTP ports) for Model Context Protocol communication.
 
-The easiest way to run the MCP servers locally is to use the provided `Dockerfile`.
+### Local Testing
 
-1.  **Build the Docker image:**
+To test the MCP server locally:
 
-    ```bash
-    docker build -t debt-reversion-mcp .
-    ```
+```bash
+# Activate virtual environment
+source aitinkerersdebtreversion/bin/activate
 
-2.  **Run the Docker container:**
+# Set required environment variable
+export SEC_API_USER_AGENT="your.email@example.com"
 
-    ```bash
-    docker run -d -p 8000:8000 -p 8001:8001 --env-file .env debt-reversion-mcp
-    ```
+# Run the server
+python main.py
+```
 
-This will start both the Edgar and Financial Data servers in a single container, accessible on `localhost:8000` and `localhost:8001`.
+The server will start and display:
+```
+🚀 DebtReversionAI MCP Server - Entry Point Wrapper
+Starting unified DebtReversionAI MCP server...
+Available tools: get_stock_data, calculate_macd, check_52week_low, check_optionable, search_debt_conversions, get_recent_filings
+```
 
-**These servers must be running (either locally or deployed) for the agent's tools to function correctly.**
+The server waits for MCP protocol messages on stdin (it won't respond to terminal input).
+
+**The server must be deployed to Dedalus Labs for the agent's tools to function correctly.**
 
 ## 3.5 Model configuration and selection
 
@@ -127,12 +135,25 @@ See `agents/dedalus_orchestrator.py` for the implementation detail and how to ov
 
 ## 4. Running the Application
 
-Once the dependencies are installed and the `.env` file is configured, you can start the chat interface:
+### Running the Agent Locally
+
+Once the dependencies are installed and the `.env` file is configured, you can start the agent chat interface:
 
 ```bash
-python main.py
+python agent_runner.py
 ```
 
 This will start the application and you can begin interacting with the DebtReversionAI agent in your terminal.
 
-**Note:** The application will not be fully functional until the MCP servers are deployed on Dedalus Labs, as the agent relies on them to perform its financial analysis and data retrieval tasks.
+**Note:** The agent will not be fully functional until the MCP server is deployed on Dedalus Labs as `ficonnectme2anymcp/DebtReversionAI`, since the agent relies on it to perform financial analysis and data retrieval tasks.
+
+### Running the MCP Server Locally
+
+To run the MCP server (for testing or development):
+
+```bash
+export SEC_API_USER_AGENT="your.email@example.com"
+python main.py
+```
+
+The server uses stdio transport and waits for MCP protocol messages. Use this for debugging server startup issues before deployment.

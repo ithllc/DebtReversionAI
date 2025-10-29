@@ -25,57 +25,64 @@ pytest
 
 Pytest will automatically discover and run all the test files located in the `tests/` directory.
 
-## Testing the MCP Servers
+## Testing the MCP Server
 
-The MCP servers can be tested both locally and after deployment.
+The MCP server can be tested both locally and after deployment.
 
 ### Local Testing
 
-To test the MCP servers locally, you can run them directly from the `src/main.py` entrypoint and use a tool like `curl` to send requests.
+To test the MCP server locally:
 
-1.  **Start the servers:**
+1.  **Start the server:**
 
     ```bash
-    python src/main.py
+    export SEC_API_USER_AGENT="your.email@example.com"
+    python main.py
     ```
 
-    This will start both servers, with the Edgar server on port 8000 and the Financial Data server on port 8001.
-
-2.  **Test with `curl`:**
-
-    You can call the `list_tools` endpoint on each server to see the available tools.
-
-    **Edgar Server:**
-    ```bash
-    curl -X POST http://localhost:8000/list_tools
+    This will start the unified MCP server using stdio transport. You should see:
+    
+    ```
+    🚀 DebtReversionAI MCP Server - Entry Point Wrapper
+    Starting unified DebtReversionAI MCP server...
+    Available tools: get_stock_data, calculate_macd, check_52week_low, check_optionable, search_debt_conversions, get_recent_filings
     ```
 
-    **Financial Data Server:**
-    ```bash
-    curl -X POST http://localhost:8001/list_tools
-    ```
+2.  **Test via Agent Integration:**
 
-    To call a specific tool, you can send a POST request to the `call_tool` endpoint.
-
-    **Example: `get_stock_data` on the Financial Data Server**
-    ```bash
-    curl -X POST http://localhost:8001/call_tool -H "Content-Type: application/json" -d '{"name": "get_stock_data", "arguments": {"ticker": "AAPL"}}'
+    The best way to test the server locally is through the agent:
+    
+    ```python
+    from agents.dedalus_orchestrator import StockAnalysisAgent
+    
+    agent = StockAnalysisAgent()
+    
+    # List available tools
+    tools = await agent.list_available_tools()
+    print(tools)
+    
+    # Test a tool
+    response = await agent.chat("Get stock data for AAPL")
+    print(response)
     ```
 
 ### Deployed Testing
 
-Once the servers are deployed to Dedalus Labs, you can use the `dedalus` CLI to test them.
+Once the server is deployed to Dedalus Labs as `ficonnectme2anymcp/DebtReversionAI`, test it through the agent:
 
-1.  **List deployed services:**
+```python
+from agents.dedalus_orchestrator import StockAnalysisAgent
 
-    ```bash
-    dedalus services list
-    ```
+agent = StockAnalysisAgent()
 
-2.  **Call a tool on a deployed service:**
+# The agent connects to the deployed server
+result = await agent.chat("Use stock ticker 'ATCH' and check the 52-week low")
+print(result)
+```
 
-    ```bash
-    dedalus services call financial-data get_stock_data '{"ticker": "AAPL"}'
-    ```
+The agent's orchestrator (`agents/dedalus_orchestrator.py`) is configured to use:
+```python
+mcp_servers=["ficonnectme2anymcp/DebtReversionAI"]
+```
 
-This allows you to test the deployed servers in the same way you would test them locally.
+This connects to your deployed unified MCP server and exposes all 6 tools to the LLM.

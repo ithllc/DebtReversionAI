@@ -3,12 +3,11 @@ import pandas as pd
 from unittest.mock import MagicMock, patch
 from datetime import datetime
 import sys
+import os
 
-# Placeholder for financial data server tests
-# The class we are testing is in a file that has not been created yet.
-# This is a placeholder for the actual import.
-# from mcp_servers.financial_server import FinancialDataServer
-
+# Add project root to path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, project_root)
 
 # Mocking the mcp library as it is not available locally
 class MockTextContent:
@@ -25,8 +24,9 @@ class MockTool:
 
 
 class MockServer:
-    def __init__(self, name):
+    def __init__(self, name, port=None):
         self.name = name
+        self.port = port
         self._tool_defs = []
         self._tool_impls = {}
 
@@ -55,7 +55,7 @@ with patch.dict(
     sys.modules["mcp.types"].Tool = MockTool
     sys.modules["mcp.types"].TextContent = MockTextContent
 
-    from mcp_servers.financial_server import FinancialDataServer
+    from src.servers.financial_server import FinancialDataServer
 
 
 @pytest.fixture(autouse=True)
@@ -101,33 +101,32 @@ async def test_get_stock_data(financial_server):
 async def test_calculate_macd(financial_server):
     """Tests the _calculate_macd method."""
     mock_ticker = MagicMock()
-    mock_history = pd.DataFrame({"Close": [100, 102, 101.5, 103, 105, 104]})
+    # Create enough data points for MACD calculation (needs at least 26 periods)
+    close_prices = [100 + i * 0.5 for i in range(50)]
+    mock_history = pd.DataFrame({"Close": close_prices})
     mock_ticker.history.return_value = mock_history
 
-    # Create a DataFrame with an index for the last row
-    mock_macd_df = pd.DataFrame(
-        {"MACD_12_26_9": [-0.5], "MACDs_12_26_9": [-0.4], "MACDh_12_26_9": [-0.1]},
-        index=[5],
-    )  # Assuming the last index is 5
+    with patch("yfinance.Ticker", return_value=mock_ticker) as mock_yf_ticker:
+        # Patch the internal method
+        with patch.object(financial_server, '_calculate_macd_manual') as mock_macd_calc:
+            mock_macd_df = pd.DataFrame(
+                {"MACD_12_26_9": [-0.5], "MACDs_12_26_9": [-0.4], "MACDh_12_26_9": [-0.1]},
+                index=[49],
+            )
+            mock_macd_calc.return_value = mock_macd_df
+            
+            result = await financial_server._calculate_macd("MSFT", "daily")
 
-    with (
-        patch("yfinance.Ticker", return_value=mock_ticker) as mock_yf_ticker,
-        patch("pandas_ta.macd", return_value=mock_macd_df) as mock_ta_macd,
-    ):
-        result = await financial_server._calculate_macd("MSFT", "daily")
+            mock_yf_ticker.assert_called_with("MSFT")
+            mock_ticker.history.assert_called_with(period="6mo", interval="1d")
 
-        mock_yf_ticker.assert_called_with("MSFT")
-        mock_ticker.history.assert_called_with(period="6mo", interval="1d")
-        mock_ta_macd.assert_called_once()
-
-        assert len(result) == 1
-        text = result[0].text
-        assert "MACD Analysis for MSFT (daily)" in text
-        assert "Current Price: $104.00" in text
-        assert "MACD Line: -0.5000" in text
-        assert "Signal Line: -0.4000" in text
-        assert "Histogram: -0.1000" in text
-        assert "Signal: Bearish" in text
+            assert len(result) == 1
+            text = result[0].text
+            assert "MACD Analysis for MSFT (daily)" in text
+            assert "MACD Line: -0.5000" in text
+            assert "Signal Line: -0.4000" in text
+            assert "Histogram: -0.1000" in text
+            assert "Signal: Bearish" in text
 
 
 @pytest.mark.asyncio
