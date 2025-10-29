@@ -4,10 +4,20 @@ Combines financial data and EDGAR tools into a single server for Dedalus deploym
 """
 import asyncio
 import os
+from pathlib import Path
+from dotenv import load_dotenv
 from mcp.server import Server
 from mcp.types import Tool, TextContent
 from src.servers.financial_server import FinancialDataServer
 from src.servers.edgar_server import EdgarServer
+
+# Load environment variables from .env file
+env_path = Path(__file__).parent.parent / '.env'
+if env_path.exists():
+    load_dotenv(env_path)
+else:
+    # Try loading from current directory as fallback
+    load_dotenv()
 
 
 class UnifiedDebtReversionServer:
