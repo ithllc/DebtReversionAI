@@ -11,15 +11,24 @@ async def main():
     print("Technologies: Dedalus MCP Gateway | Manus AI Browser")
     print("=" * 60)
 
+    # The agent is now initialized to use the remote server by default
     agent = StockAnalysisAgent()
-    # The ManusBrowser is integrated within the agent's tools via MCP servers,
-    # but we can instantiate it here if we need direct access.
-    # browser = ManusBrowser()
-
+    
     chat_interface = ChatInterface(agent)
 
     print("\n✅ Agent ready! Type 'quit' to exit.")
     print("💡 Try: 'Find stocks at 52-week lows with debt conversions'\n")
+
+    # Let's test the connection by listing the available tools from the remote server
+    print("🔧 Verifying connection to remote MCP server by listing tools...")
+    try:
+        tools = await agent.list_available_tools()
+        if tools and "error" not in tools:
+            print(f"✅ Successfully connected and found {len(tools)} tools.")
+        else:
+            print(f"⚠️ Could not list tools from remote server: {tools.get('error', 'Unknown error')}")
+    except Exception as e:
+        print(f"❌ Failed to connect to remote MCP server: {e}")
 
     await chat_interface.start()
 
