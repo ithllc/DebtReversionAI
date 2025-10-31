@@ -125,6 +125,7 @@ class StockAnalysisAgent:
         except Exception as e:
             logger.warning("Dedalus preflight: failed to list models: %s", e)
 
+
     async def list_available_tools(self):
         """
         Pattern 1: List all tools from connected MCP servers.
