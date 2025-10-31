@@ -15,6 +15,7 @@ dependencies = [
     "pydantic",
     "python-dotenv",
     "requests",
+    "html2text",
 ]
 
 [project.scripts]

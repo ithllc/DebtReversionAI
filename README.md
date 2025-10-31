@@ -68,6 +68,35 @@ The application follows a multi-layer architecture designed for autonomous opera
 - **LLM:** Anthropic Claude Sonnet-4 (via Dedalus).
 - **Financial Data:** `yfinance` for stock prices and `pandas-ta` for technical indicators.
 - **SEC Filings:** `edgartools` for accessing the EDGAR database.
+- **HTML→Markdown (optional):** `html2text` — improves conversion quality used by `src/tools/markdown_tools.py` when installed.
+
+---
+
+Refactor notes (committed)
+--------------------------
+The repository has been refactored and the following structural and functional
+changes have been made and committed:
+
+- Tools reorganized to `src/tools/`:
+    - `src/tools/financial_tools.py` — yfinance helpers: `get_stock_data`, `get_stock_data_range`, `calculate_macd`, `check_52week_low`, `check_optionable`.
+    - `src/tools/edgar_tools.py` — EDGAR helpers: `search_debt_conversions`, `get_recent_filings`, and helper utilities for parsing filing text and extracting price candidates.
+    - `src/tools/markdown_tools.py` — `render_structured_result(structured: dict, options: dict) -> dict` for HTML→Markdown conversion and paragraph-based chunking.
+
+- MCP server updates (`src/main.py`):
+    - `src/main.py` now imports and uses the `src/tools/*` helpers directly.
+    - New MCP tool exposed: `convert_to_markdown(structured: dict, options: dict = None) -> dict`, returning either a single markdown snippet (`{'mode':'snippet','markdown':...}`) or paragraph chunks (`{'mode':'chunked','chunks':[...]}`).
+
+- Tests and utilities:
+    - Added `tests/mcp_tool_tests/` with helpers to exercise streamable-HTTP and STDIO flows (`run_http_test.py`, `run_stdio_test.py`, `tools_streamable_client.py`, `tools_test_bynd_exact.py`) and unit tests for the markdown renderer.
+
+- Dependency metadata:
+    - `html2text` is listed as an optional dependency (see `requirements.txt` and `pyproject.toml`) and is used by `markdown_tools.py` for improved HTML→Markdown rendering when installed.
+
+- Miscellaneous:
+    - `src/main.py.bak` (backup of the pre-refactor entrypoint) is present in the tree for reference.
+    - `test_results.md` was removed from the repository (outdated test artifact).
+
+These changes are reflected in the project structure below and in the code under `src/` and `tests/`.
 
 ---
 
@@ -177,10 +206,14 @@ DebtReversionAI/
 ├── pyproject.toml        # Modern Python project configuration
 ├── README.md             # This file
 ├── src/                  # Source code for unified MCP server
-│   ├── main.py           # UnifiedDebtReversionServer (all tools)
+│   ├── main.py           # UnifiedDebtReversionServer (entrypoint; imports tools from `src/tools`)
+│   ├── tools/            # Reusable tool implementations (financial, EDGAR, markdown)
+│   │   ├── financial_tools.py
+│   │   ├── edgar_tools.py
+│   │   └── markdown_tools.py
 │   └── servers/
-│       ├── edgar_server.py       # SEC filing tools
-│       └── financial_server.py   # Stock data tools
+│       ├── edgar_server.py       # SEC filing tools (original server wrappers)
+│       └── financial_server.py   # Stock data tools (original server wrappers)
 ├── agents/               # Core agent logic and prompts
 │   ├── dedalus_orchestrator.py   # StockAnalysisAgent
 │   ├── manus_browser.py          # AI browser integration
@@ -192,7 +225,8 @@ DebtReversionAI/
 ├── tests/                # Test suite (pytest)
 │   ├── test_financial.py
 │   ├── test_edgar.py
-│   └── test_dedalus.py
+│   ├── test_dedalus.py
+│   └── mcp_tool_tests/    # streamable and stdio helpers, BYND exact-range scripts, markdown unit tests
 └── docs/                 # Detailed documentation
     ├── architecture.md
     ├── mcp_servers.md

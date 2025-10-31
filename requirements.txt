@@ -9,3 +9,6 @@ uvicorn
 pydantic
 python-dotenv
 requests
+
+# Optional: improves HTML -> Markdown conversion used by src/tools/markdown_tools.py
+html2text
