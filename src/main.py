@@ -48,7 +48,7 @@ _env_host = os.environ.get('HOST', '0.0.0.0')
 
 # We'll set resolved host/port in main() but provide an initial value so FastMCP can be constructed.
 # Use 0 so the server will bind to an ephemeral port by default unless overridden.
-port = 0
+port = _default_port
 host = _env_host
 
 
