@@ -19,10 +19,10 @@ dependencies = [
 ]
 
 [project.scripts]
-main = "main:main"
+main = "src.main:main"
 
 [tool.setuptools]
-packages = ["src", "src.servers", "agents"]
+packages = ["src", "src.tools"]
 
 [build-system]
 requires = ["setuptools>=61.0"]
