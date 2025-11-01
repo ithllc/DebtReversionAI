@@ -185,7 +185,7 @@ python agent_runner.py
 You can now interact with the DebtReversionAI agent from your terminal.
 
 **Example Prompt:**
-`Use stock ticker 'ATCH' and check the 52-week low and calculate MACD.`
+`Tell me about stock ticker "ETHZ" and did they do a debt conversion within the last 3 months?`
 
 **To test the MCP server locally** (for debugging):
 ```bash
